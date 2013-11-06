@@ -2,19 +2,27 @@
 
 たのしい量子どうぶつしょうぎです。コンピューターと対戦できます。
 
-Fun Quantum Animal Chess! You can also play with a computer.
+## ファイル
 
-## Files
+* QuantumAnimalChess.exe : ゲーム自体 (.NET Framework 4.0 がインストールされたWindowで動作します)
+* /src : ソースコード (Visual Studio 2012を使ってC#で書いています)
 
-* QuantumAnimalChess.exe : the game itself (it runs on a Windows with .NET Framework 4.0)
-* /src : source code (written in C# with Visual Studio 2012)
+## ルール
 
-## Key Binds
+# どうぶつしょうぎ
+* Wiki http://ja.wikipedia.org/wiki/%E3%81%A9%E3%81%86%E3%81%B6%E3%81%A4%E3%81%97%E3%82%87%E3%81%86%E3%81%8E
+* 将棋ったー http://shogitter.com/rule/17
 
-* Ctrl+N : begin new game
-* Ctrl+C : have AI play next turn
+# 量子将棋
+* ニコニコ大百科 http://dic.nicovideo.jp/a/%E9%87%8F%E5%AD%90%E5%B0%86%E6%A3%8B
+* 将棋ったー http://shogitter.com/rule/108
 
-## Who Made It?
+## ショートカットキー
+
+* Ctrl+N : 新しいゲーム
+* Ctrl+C : AIに次の手を考えさせる
+
+## 制作者
 
 Yusuke Matsushita
 y.skm24t@gmail.com
