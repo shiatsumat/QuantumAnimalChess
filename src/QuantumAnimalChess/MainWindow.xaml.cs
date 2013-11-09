@@ -718,6 +718,10 @@ namespace QuantumAnimalChess
 				return res;
 			}
 			int ans = big;
+			if (game.IsTsumi())
+			{
+				return big;
+			}
 			foreach (var te2 in game.PossTe())
 			{
 				int res = big;
