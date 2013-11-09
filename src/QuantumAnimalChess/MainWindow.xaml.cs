@@ -686,13 +686,13 @@ namespace QuantumAnimalChess
 		}
 		public static int Point(Koma k)
 		{
-			int res = 0, poss = 0;
+			int res = 0;
 			Random r = new Random();
-			if (k.canbeH && !k.isNari) { res += r.Next(3, 7); poss++; }
-			if (k.canbeH && k.isNari) { res += r.Next(10, 20); poss++; }
-			if (k.canbeK) { res += r.Next(5, 15); poss++; }
-			if (k.canbeZ) { res += r.Next(5, 15); poss++; }
-			if (k.canbeL) res += 10;
+			if (k.canbeH && !k.isNari) { res += r.Next(3, 7); }
+			if (k.canbeH && k.isNari) { res += r.Next(12, 18); }
+			if (k.canbeK) { res += r.Next(6, 14); }
+			if (k.canbeZ) { res += r.Next(6, 14); }
+			if (k.canbeL) { res += r.Next(9, 11); }
 			return res;
 		}
 		public static int Check(Te te, Game game, int depth)
