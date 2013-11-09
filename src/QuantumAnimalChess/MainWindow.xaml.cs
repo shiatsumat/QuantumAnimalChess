@@ -686,13 +686,15 @@ namespace QuantumAnimalChess
 		}
 		public static int Point(Koma k)
 		{
-			int res = 0;
+			int res = 0, poss = 0;
+			res += 5;
 			Random r = new Random();
-			if (k.canbeH && !k.isNari) { res += r.Next(3, 7); }
-			if (k.canbeH && k.isNari) { res += r.Next(12, 18); }
-			if (k.canbeK) { res += r.Next(6, 14); }
-			if (k.canbeZ) { res += r.Next(6, 14); }
-			if (k.canbeL) { res += r.Next(9, 11); }
+			if (k.canbeH && !k.isNari) { res += r.Next(3, 7); poss++; }
+			if (k.canbeH && k.isNari) { res += r.Next(12, 18); poss++; }
+			if (k.canbeK) { res += r.Next(6, 14); poss++; }
+			if (k.canbeZ) { res += r.Next(6, 14); poss++; }
+			if (k.canbeL) { res += r.Next(3, 7); poss++; }
+			if (poss - 2 > 0) res /= poss - 2;
 			return res;
 		}
 		public static int Check(Te te, Game game, int depth)
@@ -718,20 +720,16 @@ namespace QuantumAnimalChess
 				return res;
 			}
 			int ans = big;
-			if (game.IsTsumi())
-			{
-				return big;
-			}
 			foreach (var te2 in game.PossTe())
 			{
-				int res = big;
+				int res = 0;
 				Game game2 = game.Clone();
 				te2.Go(game2);
 				if (game2.gamestate == GameState.over) { ans = 0; continue; }
 				foreach (var te3 in game2.PossTe())
 				{
 					int p = Check(te3, game2.Clone(), depth + 1);
-					res = Math.Min(res, p);
+					res = Math.Max(res, p);
 				}
 				ans = Math.Min(ans, res);
 			}
