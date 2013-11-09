@@ -84,36 +84,7 @@ namespace QuantumAnimalChess
 			var game2 = game.Clone();
 			game2.komas[index].Move(x, y);
 			if (!game2.Preexamine()) return false;
-
-			int up = -1, down = -1;
-			switch (state)
-			{
-				case KomaState.OnA:
-					up = Y - 1; down = Y + 1;
-					break;
-				case KomaState.OnB:
-					up = Y + 1; down = Y - 1;
-					break;
-				default:
-					throw new Exception("error");
-			}
-			if ((x == X - 1 || x == X + 1) && y == up)
-			{
-				return canbeH && isNari || canbeZ || canbeL;
-			}
-			if ((x == X - 1 || x == X + 1) && y == down)
-			{
-				return canbeZ || canbeL;
-			}
-			if (x == X && y == up)
-			{
-				return canbeH || canbeK || canbeL;
-			}
-			if ((x == X && y == down) || ((x == X - 1 || x == X + 1) && y == Y))
-			{
-				return canbeH && isNari || canbeK || canbeL;
-			}
-			return false;
+			else return true;
 		}
 		public void Move(int x, int y)
 		{
@@ -127,19 +98,23 @@ namespace QuantumAnimalChess
 				canbeK = false;
 				if (!isNari) canbeH = false;
 			}
-			if ((x == X - 1 || x == X + 1) && y == down)
+			else if ((x == X - 1 || x == X + 1) && y == down)
 			{
 				canbeH = canbeK = false;
 				isNari = false;
 			}
-			if (x == X && y == up)
+			else if (x == X && y == up)
 			{
 				canbeZ = false;
 			}
-			if ((x == X && y == down) || ((x == X - 1 || x == X + 1) && y == Y))
+			else if ((x == X && y == down) || ((x == X - 1 || x == X + 1) && y == Y))
 			{
 				canbeZ = false;
 				if (!isNari) canbeH = false;
+			}
+			else
+			{
+				canbeH = canbeK = canbeZ = canbeL = false;
 			}
 
 			if ((state == KomaState.OnA && y == 0 || state == KomaState.OnB && y == 3) && canbeH == true)
@@ -468,6 +443,8 @@ namespace QuantumAnimalChess
 		public Koma[] motoas, motobs, komas;
 		public List<Koma> mochias, mochibs;
 
+		public const int big = 1000000;
+
 		public Game()
 		{
 			onboards = new Koma[3, 4];
@@ -685,10 +662,7 @@ namespace QuantumAnimalChess
 		{
 			if (gamestate == GameState.over) return;
 			List<Te> posste = PossTe();
-			List<Te> goodte = new List<Te>();
-			Te? winte = null, nextte = null;
-			int n = posste.Count;
-			if (n == 0)
+			if (posste.Count == 0)
 			{
 				throw new Exception("I can do nothing");
 			}
@@ -696,33 +670,72 @@ namespace QuantumAnimalChess
 			{
 				Game game = Clone();
 				te.Go(game);
-				if (game.gamestate == GameState.over) { winte = te; break; }
-				else
+				if (game.gamestate == GameState.over) { te.Go(this); return; }
+			}
+			Te nextte = new Te(); int max = -big;
+			foreach (var te in posste)
+			{
+				int p = Check(te, Clone(), 0);
+				if (max < p)
 				{
-					bool lose = false;
-					List<Te> aitete = game.PossTe();
-					foreach (var te2 in aitete)
-					{
-						Game game2 = game.Clone();
-						te2.Go(game2);
-						if (game2.gamestate == GameState.over)
-						{
-							lose = true;
-						}
-					}
-					if (!lose) goodte.Add(te);
+					max = p;
+					nextte = te;
 				}
 			}
-			int m = goodte.Count;
-			var random = new Random();
-			if (winte != null) nextte = winte;
-			else if (m != 0) nextte = goodte[random.Next(m)];
-			else nextte = posste[random.Next(n)];
-			nextte.Value.Go(this);
+			nextte.Go(this);
+		}
+		public static int Point(Koma k)
+		{
+			int res = 0, poss = 0;
+			Random r = new Random();
+			if (k.canbeH && !k.isNari) { res += r.Next(3, 7); poss++; }
+			if (k.canbeH && k.isNari) { res += r.Next(10, 20); poss++; }
+			if (k.canbeK) { res += r.Next(5, 15); poss++; }
+			if (k.canbeZ) { res += r.Next(5, 15); poss++; }
+			if (k.canbeL) res += 10;
+			return res;
+		}
+		public static int Check(Te te, Game game, int depth)
+		{
+			te.Go(game);
+			if (game.gamestate == GameState.over)
+			{
+				return big;
+			}
+			if (depth == 1)
+			{
+				List<Koma> mochi = game.gamestate == GameState.turnB ? game.mochias : game.mochibs;
+				int res = 0;
+				foreach (var k in mochi) res += Point(k);
+				foreach (var k in game.onboards)
+				{
+					if (k == null) continue;
+					if (k.state == ((game.gamestate == GameState.turnB) ? KomaState.OnA : KomaState.OnB))
+					{
+						res += Point(k);
+					}
+				}
+				return res;
+			}
+			int ans = big;
+			foreach (var te2 in game.PossTe())
+			{
+				int res = big;
+				Game game2 = game.Clone();
+				te2.Go(game2);
+				if (game2.gamestate == GameState.over) { ans = 0; continue; }
+				foreach (var te3 in game2.PossTe())
+				{
+					int p = Check(te3, game2.Clone(), depth + 1);
+					res = Math.Min(res, p);
+				}
+				ans = Math.Min(ans, res);
+			}
+			return ans;
 		}
 		public bool IsTsumi()
 		{
-			if (gamestate == GameState.over) throw new Exception("error");
+			if (gamestate == GameState.over) return false;
 			List<Te> posste = PossTe();
 			int n = posste.Count;
 			if (n == 0)
