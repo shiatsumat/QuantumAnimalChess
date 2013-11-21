@@ -246,6 +246,14 @@ namespace QuantumAnimalChess
 					text += "後 ";
 					break;
 			}
+			if (game.motoas.Contains(this))
+			{
+				text += "元先 ";
+			}
+			else
+			{
+				text += "元後 ";
+			}
 
 			if (canbeH & !isNari)
 			{
@@ -384,7 +392,7 @@ namespace QuantumAnimalChess
 
 	public enum TeState { Move, Utsu }
 
-	public struct Te
+	public struct Te : IComparable
 	{
 		public TeState state;
 		public int k;
@@ -431,6 +439,10 @@ namespace QuantumAnimalChess
 					break;
 			}
 			game.Next();
+		}
+		int IComparable.CompareTo(object obj)
+		{
+			return 0;
 		}
 	}
 
@@ -704,7 +716,7 @@ namespace QuantumAnimalChess
 			{
 				return big;
 			}
-			if (depth == 1)
+			if (depth >= 1)
 			{
 				List<Koma> mochi = game.gamestate == GameState.turnB ? game.mochias : game.mochibs;
 				int res = 0;
@@ -719,17 +731,45 @@ namespace QuantumAnimalChess
 				}
 				return res;
 			}
+
 			int ans = big;
-			foreach (var te2 in game.PossTe())
+
+			var aitete = game.PossTe();
+
+			if (depth > 0)
+			{
+				int c = 0; Te aitete0 = new Te();
+				foreach (var te2 in aitete)
+				{
+					int d = Check(te2, game.Clone(), big);
+					if (c < d) { c = d; aitete0 = te2; }
+				}
+				aitete.Clear(); aitete.Add(aitete0);
+			}
+
+			foreach (var te2 in aitete)
 			{
 				int res = 0;
 				Game game2 = game.Clone();
 				te2.Go(game2);
 				if (game2.gamestate == GameState.over) { ans = 0; continue; }
-				foreach (var te3 in game2.PossTe())
+				var jibunte = game2.PossTe();
+
+				if (depth == 1)
 				{
-					int p = Check(te3, game2.Clone(), depth + 1);
-					res = Math.Max(res, p);
+					int c = 0; Te jibunte0 = new Te();
+					foreach (var te3 in jibunte)
+					{
+						int d = Check(te3, game2.Clone(), big);
+						if (c < d) { c = d; jibunte0 = te3; }
+					}
+					jibunte.Clear(); jibunte.Add(jibunte0);
+				}
+				res = 0;
+				foreach (var te3 in jibunte)
+				{
+					int c = Check(te3, game2.Clone(), depth + 1);
+					if (res < c) { res = c; }
 				}
 				ans = Math.Min(ans, res);
 			}
@@ -752,8 +792,7 @@ namespace QuantumAnimalChess
 				else
 				{
 					bool lose = false;
-					List<Te> aitete = game.PossTe();
-					foreach (var te2 in aitete)
+					foreach (var te2 in game.PossTe())
 					{
 						Game game2 = game.Clone();
 						te2.Go(game2);
